@@ -126,14 +126,18 @@ func (s *serverCollection) resources() (r []types.Resource) {
 }
 
 func (s *serverCollection) writeText(w io.Writer) error {
-	t := asciitable.MakeTable([]string{"Nodename", "UUID", "Address", "Labels"})
+	t := asciitable.MakeTable([]string{"Host", "UUID", "Public Address", "Labels", "Version"})
 	for _, s := range s.servers {
 		t.AddRow([]string{
-			s.GetHostname(), s.GetName(), s.GetAddr(), s.LabelsString(),
+			s.GetHostname(), s.GetName(), s.GetAddr(), s.LabelsString(), s.GetTeleportVersion(),
 		})
 	}
 	_, err := t.AsBuffer().WriteTo(w)
 	return trace.Wrap(err)
+}
+
+func (s *serverCollection) writeYaml(w io.Writer) error {
+	return utils.WriteYAML(w, s.servers)
 }
 
 type userCollection struct {
