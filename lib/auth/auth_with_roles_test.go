@@ -373,12 +373,14 @@ func TestAPILockedOut(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.NoError(t, srv.Auth().UpsertLock(ctx, lock))
+	require.Eventually(t, func() bool { return testOp() != nil }, time.Second, time.Second/10)
 	err = testOp()
 	require.Error(t, err)
 	require.True(t, trace.IsAccessDenied(err))
 
 	// Delete the lock.
 	require.NoError(t, srv.Auth().DeleteLock(ctx, lock.GetName()))
+	require.Eventually(t, func() bool { return testOp() == nil }, time.Second, time.Second/10)
 	require.NoError(t, testOp())
 
 	// Create a new lock targeting the user's role.
@@ -387,6 +389,7 @@ func TestAPILockedOut(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.NoError(t, srv.Auth().UpsertLock(ctx, roleLock))
+	require.Eventually(t, func() bool { return testOp() != nil }, time.Second, time.Second/10)
 	err = testOp()
 	require.Error(t, err)
 	require.True(t, trace.IsAccessDenied(err))
